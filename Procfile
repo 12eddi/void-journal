@@ -1,1 +1,1 @@
-web: php artisan storage:link && php artisan migrate --force --seed && php artisan config:cache && frankenphp run --config /etc/frankenphp/Caddyfile
+web: php artisan storage:link && php artisan migrate --force --seed && php artisan config:cache && php artisan route:cache && frankenphp run --config /etc/frankenphp/Caddyfile
