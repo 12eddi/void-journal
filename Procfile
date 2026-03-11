@@ -1,0 +1,1 @@
+web: php artisan storage:link && php artisan migrate --force --seed && php artisan config:cache && frankenphp run --config /etc/frankenphp/Caddyfile
