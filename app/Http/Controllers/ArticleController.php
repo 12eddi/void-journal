@@ -8,6 +8,33 @@ use Illuminate\Support\Str;
 
 class ArticleController extends Controller
 {
+    private function uploadToCloudinary($file): string
+    {
+        $cloudName = config('cloudinary.cloud_url') ? null : env('CLOUDINARY_CLOUD_NAME');
+        $apiKey = env('CLOUDINARY_KEY');
+        $apiSecret = env('CLOUDINARY_SECRET');
+        $cloudName = env('CLOUDINARY_CLOUD_NAME');
+
+        $timestamp = time();
+        $signature = sha1("timestamp={$timestamp}{$apiSecret}");
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://api.cloudinary.com/v1_1/{$cloudName}/image/upload");
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, [
+            'file' => new \CURLFile($file->getRealPath(), $file->getMimeType(), $file->getClientOriginalName()),
+            'api_key' => $apiKey,
+            'timestamp' => $timestamp,
+            'signature' => $signature,
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        $data = json_decode($response, true);
+        return $data['secure_url'];
+    }
+
     public function index()
     {
         $articles = Article::with('user')
@@ -39,7 +66,7 @@ class ArticleController extends Controller
 
         $coverPath = null;
         if ($request->hasFile('cover_image')) {
-            $coverPath = cloudinary()->upload($request->file('cover_image')->getRealPath())->getSecurePath();
+            $coverPath = $this->uploadToCloudinary($request->file('cover_image'));
         }
 
         $article = auth()->user()->articles()->create([
@@ -72,7 +99,7 @@ class ArticleController extends Controller
         ]);
 
         if ($request->hasFile('cover_image')) {
-            $data['cover_image'] = cloudinary()->upload($request->file('cover_image')->getRealPath())->getSecurePath();
+            $data['cover_image'] = $this->uploadToCloudinary($request->file('cover_image'));
         } else {
             unset($data['cover_image']);
         }
