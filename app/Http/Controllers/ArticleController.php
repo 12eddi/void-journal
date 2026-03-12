@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class ArticleController extends Controller
 {
@@ -40,8 +39,7 @@ class ArticleController extends Controller
 
         $coverPath = null;
         if ($request->hasFile('cover_image')) {
-            $uploaded = Cloudinary::upload($request->file('cover_image')->getRealPath());
-            $coverPath = $uploaded->getSecurePath();
+            $coverPath = cloudinary()->upload($request->file('cover_image')->getRealPath())->getSecurePath();
         }
 
         $article = auth()->user()->articles()->create([
@@ -74,8 +72,7 @@ class ArticleController extends Controller
         ]);
 
         if ($request->hasFile('cover_image')) {
-            $uploaded = Cloudinary::upload($request->file('cover_image')->getRealPath());
-            $data['cover_image'] = $uploaded->getSecurePath();
+            $data['cover_image'] = cloudinary()->upload($request->file('cover_image')->getRealPath())->getSecurePath();
         } else {
             unset($data['cover_image']);
         }
