@@ -37,4 +37,9 @@ class Article extends Model
     {
         return Str::limit(strip_tags($this->body), 160);
     }
+
+    public function comments()
+    {
+        return $this->hasMany(\App\Models\Comment::class)->latest();
+    }
 }
