@@ -158,7 +158,7 @@
 
 @if($article->cover_image)
 <div class="article-cover">
-    <img src="{{ \Illuminate\Support\Facades\Storage::url($article->cover_image) }}" alt="{{ $article->title }}">
+    <img src="{{ $article->cover_image }}" alt="{{ $article->title }}">
 </div>
 @endif
 

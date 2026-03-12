@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class ArticleController extends Controller
 {
@@ -40,7 +40,8 @@ class ArticleController extends Controller
 
         $coverPath = null;
         if ($request->hasFile('cover_image')) {
-            $coverPath = $request->file('cover_image')->store('covers', 'public');
+            $uploaded = Cloudinary::upload($request->file('cover_image')->getRealPath());
+            $coverPath = $uploaded->getSecurePath();
         }
 
         $article = auth()->user()->articles()->create([
@@ -73,10 +74,8 @@ class ArticleController extends Controller
         ]);
 
         if ($request->hasFile('cover_image')) {
-            if ($article->cover_image) {
-                Storage::disk('public')->delete($article->cover_image);
-            }
-            $data['cover_image'] = $request->file('cover_image')->store('covers', 'public');
+            $uploaded = Cloudinary::upload($request->file('cover_image')->getRealPath());
+            $data['cover_image'] = $uploaded->getSecurePath();
         } else {
             unset($data['cover_image']);
         }
@@ -91,10 +90,6 @@ class ArticleController extends Controller
     {
         if (!auth()->user()->isAdmin()) {
             abort(403, 'Only admins can delete articles.');
-        }
-
-        if ($article->cover_image) {
-            Storage::disk('public')->delete($article->cover_image);
         }
 
         $article->delete();
