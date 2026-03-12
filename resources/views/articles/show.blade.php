@@ -250,6 +250,6 @@
         NO COMMENTS YET — BE THE FIRST
     </div>
     @endforelse
-
+    <h1></h1>
 </div>
-@endsection
+@endsection 
