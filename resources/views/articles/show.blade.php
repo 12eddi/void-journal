@@ -166,6 +166,7 @@
         letter-spacing: 0.1em;
         text-transform: uppercase;
         transition: color 0.2s;
+        color: var(--muted);
     }
 
     .comment-like-btn:hover { color: var(--accent); }
@@ -198,12 +199,26 @@
 {{-- ARTICLE LIKE BUTTON --}}
 <div style="max-width:800px;margin:0 auto;padding:0 2rem 1rem;">
     @auth
-    <form action="{{ route('articles.like', $article) }}" method="POST" style="display:inline;">
-        @csrf
-        <button type="submit" class="like-btn {{ $article->isLikedBy(auth()->user()) ? 'liked' : '' }}">
-            {{ $article->isLikedBy(auth()->user()) ? '♥' : '♡' }} {{ $article->likes->count() }} {{ Str::plural('LIKE', $article->likes->count()) }}
-        </button>
-    </form>
+    <div style="position:relative;display:inline-block;">
+        <form action="{{ route('articles.like', $article) }}" method="POST" style="display:inline;">
+            @csrf
+            <button type="submit" class="like-btn {{ $article->isLikedBy(auth()->user()) ? 'liked' : '' }}"
+                    onmouseenter="document.getElementById('article-likes-tooltip').style.display='block'"
+                    onmouseleave="document.getElementById('article-likes-tooltip').style.display='none'">
+                {{ $article->isLikedBy(auth()->user()) ? '♥' : '♡' }} {{ $article->likes->count() }} {{ Str::plural('LIKE', $article->likes->count()) }}
+            </button>
+        </form>
+        @if($article->likes->count() > 0)
+        <div id="article-likes-tooltip" style="display:none;position:absolute;bottom:calc(100% + 8px);left:0;background:var(--surface2);border:1px solid var(--border);padding:0.75rem 1rem;min-width:150px;z-index:100;">
+            <div class="mono text-muted" style="font-size:0.55rem;letter-spacing:0.15em;margin-bottom:0.5rem;">LIKED BY</div>
+            @foreach($article->likes()->with('user')->get() as $like)
+            <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text);padding:0.2rem 0;">
+                {{ $like->user->name }}
+            </div>
+            @endforeach
+        </div>
+        @endif
+    </div>
     @else
     <span class="mono text-muted" style="font-size:0.7rem;">♡ {{ $article->likes->count() }} {{ Str::plural('LIKE', $article->likes->count()) }}</span>
     @endauth
@@ -278,13 +293,27 @@
             <div style="font-size:0.9rem;color:#c8c4bf;line-height:1.6;">{{ $comment->body }}</div>
             <div style="display:flex;align-items:center;gap:1rem;margin-top:0.5rem;">
                 @auth
-                {{-- Comment like button --}}
-                <form action="{{ route('comments.like', $comment) }}" method="POST" style="display:inline;">
-                    @csrf
-                    <button type="submit" class="comment-like-btn {{ $comment->isLikedBy(auth()->user()) ? 'liked' : '' }}">
-                        {{ $comment->isLikedBy(auth()->user()) ? '♥' : '♡' }} {{ $comment->likes->count() }}
-                    </button>
-                </form>
+                {{-- Comment like button with tooltip --}}
+                <div style="position:relative;display:inline-block;">
+                    <form action="{{ route('comments.like', $comment) }}" method="POST" style="display:inline;">
+                        @csrf
+                        <button type="submit" class="comment-like-btn {{ $comment->isLikedBy(auth()->user()) ? 'liked' : '' }}"
+                                onmouseenter="document.getElementById('comment-likes-tooltip-{{ $comment->id }}').style.display='block'"
+                                onmouseleave="document.getElementById('comment-likes-tooltip-{{ $comment->id }}').style.display='none'">
+                            {{ $comment->isLikedBy(auth()->user()) ? '♥' : '♡' }} {{ $comment->likes->count() }}
+                        </button>
+                    </form>
+                    @if($comment->likes->count() > 0)
+                    <div id="comment-likes-tooltip-{{ $comment->id }}" style="display:none;position:absolute;bottom:calc(100% + 8px);left:0;background:var(--surface2);border:1px solid var(--border);padding:0.75rem 1rem;min-width:130px;z-index:100;">
+                        <div class="mono text-muted" style="font-size:0.55rem;letter-spacing:0.15em;margin-bottom:0.5rem;">LIKED BY</div>
+                        @foreach($comment->likes()->with('user')->get() as $like)
+                        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text);padding:0.2rem 0;">
+                            {{ $like->user->name }}
+                        </div>
+                        @endforeach
+                    </div>
+                    @endif
+                </div>
                 @if(auth()->user()->isAdmin() || $comment->user_id === auth()->id())
                 <form action="{{ route('comments.destroy', $comment) }}" method="POST" style="display:inline;">
                     @csrf @method('DELETE')
