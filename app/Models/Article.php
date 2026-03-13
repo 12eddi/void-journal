@@ -42,4 +42,17 @@ class Article extends Model
     {
         return $this->hasMany(\App\Models\Comment::class)->latest();
     }
+    
+
+    public function likes()
+{
+    return $this->morphMany(\App\Models\Like::class, 'likeable');
+}
+
+public function isLikedBy($user): bool
+{
+    if (!$user) return false;
+    return $this->likes()->where('user_id', $user->id)->exists();
+}
+
 }

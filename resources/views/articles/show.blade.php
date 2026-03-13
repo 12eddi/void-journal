@@ -141,6 +141,35 @@
     }
 
     .comment-textarea:focus { border-color: var(--accent); }
+
+    .like-btn {
+        background: none;
+        border: 1px solid var(--border);
+        padding: 0.5rem 1.2rem;
+        cursor: pointer;
+        font-family: 'DM Mono', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        transition: all 0.2s;
+    }
+
+    .like-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .like-btn.liked { border-color: var(--accent); color: var(--accent); }
+
+    .comment-like-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: 'DM Mono', monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        transition: color 0.2s;
+    }
+
+    .comment-like-btn:hover { color: var(--accent); }
+    .comment-like-btn.liked { color: var(--accent); }
 </style>
 @endsection
 
@@ -164,6 +193,20 @@
 
 <div class="article-body">
     {!! nl2br(e($article->body)) !!}
+</div>
+
+{{-- ARTICLE LIKE BUTTON --}}
+<div style="max-width:800px;margin:0 auto;padding:0 2rem 1rem;">
+    @auth
+    <form action="{{ route('articles.like', $article) }}" method="POST" style="display:inline;">
+        @csrf
+        <button type="submit" class="like-btn {{ $article->isLikedBy(auth()->user()) ? 'liked' : '' }}">
+            {{ $article->isLikedBy(auth()->user()) ? '♥' : '♡' }} {{ $article->likes->count() }} {{ Str::plural('LIKE', $article->likes->count()) }}
+        </button>
+    </form>
+    @else
+    <span class="mono text-muted" style="font-size:0.7rem;">♡ {{ $article->likes->count() }} {{ Str::plural('LIKE', $article->likes->count()) }}</span>
+    @endauth
 </div>
 
 @auth
@@ -233,16 +276,27 @@
                 <span class="mono text-muted" style="font-size:0.6rem;">{{ $comment->created_at->diffForHumans() }}</span>
             </div>
             <div style="font-size:0.9rem;color:#c8c4bf;line-height:1.6;">{{ $comment->body }}</div>
-            @auth
-            @if(auth()->user()->isAdmin() || $comment->user_id === auth()->id())
-            <form action="{{ route('comments.destroy', $comment) }}" method="POST" style="margin-top:0.5rem;">
-                @csrf @method('DELETE')
-                <button type="submit" style="background:none;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;">
-                    Delete
-                </button>
-            </form>
-            @endif
-            @endauth
+            <div style="display:flex;align-items:center;gap:1rem;margin-top:0.5rem;">
+                @auth
+                {{-- Comment like button --}}
+                <form action="{{ route('comments.like', $comment) }}" method="POST" style="display:inline;">
+                    @csrf
+                    <button type="submit" class="comment-like-btn {{ $comment->isLikedBy(auth()->user()) ? 'liked' : '' }}">
+                        {{ $comment->isLikedBy(auth()->user()) ? '♥' : '♡' }} {{ $comment->likes->count() }}
+                    </button>
+                </form>
+                @if(auth()->user()->isAdmin() || $comment->user_id === auth()->id())
+                <form action="{{ route('comments.destroy', $comment) }}" method="POST" style="display:inline;">
+                    @csrf @method('DELETE')
+                    <button type="submit" style="background:none;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;">
+                        Delete
+                    </button>
+                </form>
+                @endif
+                @else
+                <span class="mono text-muted" style="font-size:0.6rem;">♡ {{ $comment->likes->count() }}</span>
+                @endauth
+            </div>
         </div>
     </div>
     @empty
@@ -250,6 +304,6 @@
         NO COMMENTS YET — BE THE FIRST
     </div>
     @endforelse
-    <h1></h1>
+
 </div>
-@endsection 
+@endsection

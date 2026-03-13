@@ -17,4 +17,16 @@ class Comment extends Model
     {
         return $this->belongsTo(Article::class);
     }
+
+    public function likes()
+{
+    return $this->morphMany(\App\Models\Like::class, 'likeable');
+}
+
+public function isLikedBy($user): bool
+{
+    if (!$user) return false;
+    return $this->likes()->where('user_id', $user->id)->exists();
+}
+
 }

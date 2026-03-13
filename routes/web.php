@@ -6,6 +6,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PollController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LikeController;
+
+Route::post('/articles/{article}/like', [LikeController::class, 'toggleArticle'])->name('articles.like');
+Route::post('/comments/{comment}/like', [LikeController::class, 'toggleComment'])->name('comments.like');
 
 // Public
 Route::get('/', [ArticleController::class, 'index'])->name('home');
